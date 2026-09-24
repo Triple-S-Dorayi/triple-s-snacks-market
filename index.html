@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triple S Snacks Market</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-amber-50 text-slate-800 font-sans pb-16">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-amber-600 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
+        <div>
+            <h1 class="text-base font-bold">🍪 Triple S Snacks</h1>
+            <span class="text-[10px] bg-amber-700 px-1.5 py-0.5 rounded text-amber-100">Official Market App</span>
+        </div>
+        <div class="space-x-1">
+            <button onclick="switchView('customer')" class="text-xs bg-amber-700 hover:bg-amber-800 px-2 py-1.5 rounded transition font-medium">Customer</button>
+            <button onclick="switchView('sisters')" class="text-xs bg-amber-800 hover:bg-amber-900 px-2 py-1.5 rounded transition font-medium">Sisters</button>
+            <button onclick="switchView('owner')" class="text-xs bg-slate-800 hover:bg-slate-900 px-2 py-1.5 rounded transition font-medium">Owner</button>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 space-y-6">
+
+        <!-- ================= VIEW 1: CUSTOMER PORTAL ================= -->
+        <div id="view-customer" class="space-y-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-amber-100" id="cust-auth-box">
+                <h2 class="text-md font-semibold text-amber-900 mb-1">Welcome to Triple S Snacks Market</h2>
+                <p class="text-xs text-slate-500 mb-4">Sign in with your phone or email to view our fresh snack menu.</p>
+                <div id="c-step-1" class="space-y-3">
+                    <input type="text" id="cust-contact" placeholder="Phone number or email address" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                    <button onclick="custSendOTP()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-lg text-sm font-medium transition">Get OTP Code</button>
+                </div>
+                <div id="c-step-2" class="space-y-3 hidden">
+                    <div class="bg-amber-50 p-2.5 rounded-lg text-xs text-amber-800">Verification OTP sent! Use code: <b>1234</b></div>
+                    <input type="text" id="cust-otp" maxlength="4" placeholder="1234" class="w-full p-2 border border-slate-300 rounded-lg text-center tracking-widest text-lg font-bold outline-none">
+                    <button onclick="custVerifyOTP()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition">Verify & Open Menu</button>
+                </div>
+            </div>
+
+            <!-- Store Screen (Hidden until authenticated) -->
+            <div id="cust-store" class="space-y-4 hidden">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-amber-100">
+                    <h2 class="text-md font-semibold text-amber-900 mb-3">Available Snacks</h2>
+                    <div id="menu-items" class="space-y-2">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-amber-100 space-y-3">
+                    <h3 class="text-sm font-semibold text-amber-900 border-b pb-2">Your Order Cart</h3>
+                    <div id="cart-list" class="text-xs text-slate-600 space-y-1">Cart is empty.</div>
+                    <div class="flex justify-between font-bold text-sm border-t pt-2">
+                        <span>Total Amount:</span> <span id="cart-total" class="text-amber-800">₦0</span>
+                    </div>
+                    <button onclick="checkoutOrder()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-sm font-medium transition">💳 Complete Payment & Send to WhatsApp</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 2: SISTERS' PANEL (VENDOR) ================= -->
+        <div id="view-sisters" class="space-y-4 hidden">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-amber-100" id="sisters-login-box">
+                <h2 class="text-md font-semibold text-amber-900 mb-1">Sisters' Secure Access</h2>
+                <p class="text-xs text-slate-500 mb-3">Enter your staff PIN to review and manage incoming orders.</p>
+                <input type="password" id="sisters-pin" placeholder="Enter PIN (Default: 9999)" class="w-full p-2 border border-slate-300 rounded-lg text-sm mb-3 outline-none">
+                <button onclick="sistersLogin()" class="w-full bg-amber-700 hover:bg-amber-800 text-white py-2.5 rounded-lg text-sm font-medium transition">Open Kitchen Dashboard</button>
+            </div>
+
+            <div id="sisters-dashboard" class="space-y-4 hidden">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-amber-100 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-md font-semibold text-amber-900">Triple S Kitchen Feed</h2>
+                        <span class="text-xs text-slate-500">Accept or reject customer orders</span>
+                    </div>
+                    <button onclick="logoutSisters()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2.5 py-1 rounded text-slate-700 font-medium">Lock</button>
+                </div>
+                <div id="sisters-orders-list" class="space-y-3">
+                    <p class="text-xs text-slate-400 text-center py-4">No incoming orders yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 3: OWNER ADMIN ================= -->
+        <div id="view-owner" class="space-y-4 hidden">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200" id="owner-login-box">
+                <h2 class="text-md font-semibold text-slate-900 mb-1">Master Owner Hub</h2>
+                <p class="text-xs text-slate-500 mb-3">Restricted access for system administration.</p>
+                <input type="password" id="owner-pass" placeholder="Master Password (Default: admin123)" class="w-full p-2 border border-slate-300 rounded-lg text-sm mb-3 outline-none">
+                <button onclick="ownerLogin()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-lg text-sm font-medium transition">Access Management</button>
+            </div>
+
+            <div id="owner-dashboard" class="space-y-4 hidden">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-md font-semibold text-slate-900 mb-2">Business Overview</h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-50 p-3 rounded-lg border">
+                            <span class="text-[10px] text-slate-500 block">Total Revenue</span>
+                            <span id="owner-rev" class="text-base font-bold text-slate-800">₦0</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border">
+                            <span class="text-[10px] text-slate-500 block">Total Orders</span>
+                            <span id="owner-count" class="text-base font-bold text-slate-800">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-md font-semibold text-slate-900 mb-2">Snack Catalog Pricing</h2>
+                    <div class="space-y-2 mb-3">
+                        <input type="text" id="new-item-name" placeholder="Snack Name (e.g. Chin Chin)" class="w-full p-2 border rounded text-xs outline-none">
+                        <input type="number" id="new-item-price" placeholder="Price in ₦" class="w-full p-2 border rounded text-xs outline-none">
+                        <button onclick="addCatalogItem()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded text-xs font-medium transition">Add Snack to Store</button>
+                    </div>
+                    <div id="admin-catalog-list" class="space-y-1 text-xs"></div>
+                </div>
+                <button onclick="logoutOwner()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded text-xs font-medium">Lock Owner Hub</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let catalog = JSON.parse(localStorage.getItem('triple_s_catalog')) || [
+            { id: 1, name: 'Crunchy Chin Chin', price: 500 },
+            { id: 2, name: 'Fresh Puff Puff', price: 300 },
+            { id: 3, name: 'Meat Pie', price: 1000 }
+        ];
+        let orders = JSON.parse(localStorage.getItem('triple_s_orders')) || [];
+        let activeCustomer = "";
+        let cart = [];
+        const sistersWhatsApp = "2348012345678"; // Replace with your sisters' phone number
+
+        function switchView(role) {
+            document.getElementById('view-customer').classList.add('hidden');
+            document.getElementById('view-sisters').classList.add('hidden');
+            document.getElementById('view-owner').classList.add('hidden');
+            document.getElementById(`view-${role}`).classList.remove('hidden');
+            if(role === 'customer') renderMenu();
+            if(role === 'sisters') renderSistersOrders();
+            if(role === 'owner') renderOwnerHub();
+        }
+
+        // Customer Logic
+        function custSendOTP() {
+            const val = document.getElementById('cust-contact').value.trim();
+            if(!val) { alert('Please enter phone number or email.'); return; }
+            activeCustomer = val;
+            document.getElementById('c-step-1').classList.add('hidden');
+            document.getElementById('c-step-2').classList.remove('hidden');
+        }
+        function custVerifyOTP() {
+            if(document.getElementById('cust-otp').value.trim() !== "1234") { alert('Invalid OTP code. Use 1234.'); return; }
+            document.getElementById('cust-auth-box').classList.add('hidden');
+            document.getElementById('cust-store').classList.remove('hidden');
+            renderMenu();
+        }
+        function renderMenu() {
+            const container = document.getElementById('menu-items');
+            container.innerHTML = catalog.map(item => `
+                <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border text-xs">
+                    <div><b>${item.name}</b><span class="block text-amber-700 font-bold mt-0.5">₦${item.price.toLocaleString()}</span></div>
+                    <button onclick="addToCart(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-md font-medium">Add</button>
+                </div>
+            `).join('');
+        }
+        function addToCart(id) {
+            const item = catalog.find(i => i.id === id);
+            const existing = cart.find(i => i.id === id);
+            if(existing) existing.qty++; else cart.push({...item, qty: 1});
+            updateCart();
+        }
+        function updateCart() {
+            const list = document.getElementById('cart-list');
+            const totalEl = document.getElementById('cart-total');
+            if(cart.length === 0) { list.innerHTML = "Cart is empty."; totalEl.innerText = "₦0"; return; }
+            let total = 0;
+            list.innerHTML = cart.map(i => {
+                let sub = i.price * i.qty; total += sub;
+                return `<div class="flex justify-between"><span>${i.qty}x ${i.name}</span><span>₦${sub.toLocaleString()}</span></div>`;
+            }).join('');
+            totalEl.innerText = `₦${total.toLocaleString()}`;
+        }
+        function checkoutOrder() {
+            if(cart.length === 0) { alert('Your cart is empty.'); return; }
+            let total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            let newOrder = {
+                id: Date.now(),
+                customer: activeCustomer,
+                items: [...cart],
+                total: total,
+                status: 'Pending',
+                time: new Date().toLocaleTimeString()
+            };
+            orders.unshift(newOrder);
+            localStorage.setItem('triple_s_orders', JSON.stringify(orders));
+            
+            let summary = cart.map(i => `${i.qty}x ${i.name}`).join(', ');
+            let msg = `TRIPLE S SNACKS ORDER! 🍪\nCustomer: ${activeCustomer}\nItems: ${summary}\nTotal Paid: ₦${total.toLocaleString()}\nStatus: Payment Receipt Attached ✅`;
+            window.open(`https://api.whatsapp.com/send?phone=${sistersWhatsApp}&text=${encodeURIComponent(msg)}`, '_blank');
+            
+            alert('Order sent successfully! Receipt forwarded to Triple S WhatsApp.');
+            cart = []; updateCart();
+        }
+
+        // Sisters' Panel Logic
+        function sistersLogin() {
+            if(document.getElementById('sisters-pin').value === "9999") {
+                document.getElementById('sisters-login-box').classList.add('hidden');
+                document.getElementById('sisters-dashboard').classList.remove('hidden');
+                renderSistersOrders();
+            } else { alert('Incorrect PIN code.'); }
+        }
+        function logoutSisters() {
+            document.getElementById('sisters-login-box').classList.remove('hidden');
+            document.getElementById('sisters-dashboard').classList.add('hidden');
+        }
+        function renderSistersOrders() {
+            orders = JSON.parse(localStorage.getItem('triple_s_orders')) || [];
+            const container = document.getElementById('sisters-orders-list');
+            if(orders.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No incoming orders.</p>`; return; }
+            container.innerHTML = orders.map(ord => `
+                <div class="p-3 bg-slate-50 rounded-lg border text-xs space-y-1.5">
+                    <div class="flex justify-between font-bold"><span>${ord.customer}</span><span class="text-amber-700">₦${ord.total.toLocaleString()}</span></div>
+                    <div class="text-slate-600">${ord.items.map(i => `${i.qty}x${i.name}`).join(', ')}</div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                        <span class="px-2 py-0.5 rounded font-bold ${ord.status === 'Accepted' ? 'bg-green-100 text-green-800' : ord.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}">${ord.status}</span>
+                        <div class="space-x-1">
+                            <button onclick="updateOrderStatus(${ord.id}, 'Accepted')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded font-medium">Accept</button>
+                            <button onclick="updateOrderStatus(${ord.id}, 'Rejected')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded font-medium">Reject</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function updateOrderStatus(id, status) {
+            orders = orders.map(o => o.id === id ? {...o, status: status} : o);
+            localStorage.setItem('triple_s_orders', JSON.stringify(orders));
+            renderSistersOrders();
+        }
+
+        // Owner Admin Logic
+        function ownerLogin() {
+            if(document.getElementById('owner-pass').value === "admin123") {
+                document.getElementById('owner-login-box').classList.add('hidden');
+                document.getElementById('owner-dashboard').classList.remove('hidden');
+                renderOwnerHub();
+            } else { alert('Incorrect Master Password.'); }
+        }
+        function logoutOwner() {
+            document.getElementById('owner-login-box').classList.remove('hidden');
+            document.getElementById('owner-dashboard').classList.add('hidden');
+        }
+        function renderOwnerHub() {
+            orders = JSON.parse(localStorage.getItem('triple_s_orders')) || [];
+            let totalRev = orders.filter(o => o.status === 'Accepted').reduce((sum, o) => sum + o.total, 0);
+            document.getElementById('owner-rev').innerText = `₦${totalRev.toLocaleString()}`;
+            document.getElementById('owner-count').innerText = orders.length;
+
+            const cList = document.getElementById('admin-catalog-list');
+            cList.innerHTML = catalog.map(i => `<div class="flex justify-between items-center py-1.5 border-b"><span><b>${i.name}</b> - ₦${i.price}</span><button onclick="deleteCatalogItem(${i.id})" class="text-red-500 font-bold px-2 py-0.5">Remove</button></div>`).join('');
+        }
+        function addCatalogItem() {
+            let name = document.getElementById('new-item-name').value.trim();
+            let price = parseFloat(document.getElementById('new-item-price').value);
+            if(!name || !price) { alert('Please fill in both name and price.'); return; }
+            catalog.push({ id: Date.now(), name, price });
+            localStorage.setItem('triple_s_catalog', JSON.stringify(catalog));
+            document.getElementById('new-item-name').value = "";
+            document.getElementById('new-item-price').value = "";
+            renderOwnerHub();
+        }
+        function deleteCatalogItem(id) {
+            catalog = catalog.filter(i => i.id !== id);
+            localStorage.setItem('triple_s_catalog', JSON.stringify(catalog));
+            renderOwnerHub();
+        }
+    </script>
+</body>
+</html>
